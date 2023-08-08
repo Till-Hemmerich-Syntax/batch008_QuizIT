@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 import com.syntax.hemmerich.batch008_quizit.R
@@ -38,8 +39,7 @@ class QuizFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        updateUI()
-
+        addObservers()
         binding.musicianButton.setOnClickListener{
             checkAnswer(true)
         }
@@ -48,17 +48,23 @@ class QuizFragment : Fragment() {
         }
 
     }
+
+    private fun addObservers(){
+        viewModel.score.observe(viewLifecycleOwner, Observer {
+            binding.scoreText.text = it.toString()
+        }
+        )
+        viewModel.currentVip.observe(viewLifecycleOwner, Observer {
+            binding.questionText.text = it.name
+        })
+    }
     private fun checkAnswer(guessMusician : Boolean){
         viewModel.checkAnswer(guessMusician)
-        updateUI()
-        if(viewModel.score >= 5){
+        if(viewModel.score.value!! >= 5){
             showEndDialog()
         }
     }
-    private fun updateUI(){
-        binding.scoreText.text = viewModel.score.toString()
-        binding.questionText.text = viewModel.currentVip.name
-    }
+
     private fun showEndDialog(){
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("Super du hast gewonnen")
@@ -69,7 +75,6 @@ class QuizFragment : Fragment() {
             }
             .setPositiveButton("Restart"){_,_ ->
                 viewModel.restartGame()
-                updateUI()
             }
             .show()
 
